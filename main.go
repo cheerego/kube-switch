@@ -3,67 +3,66 @@ package main
 import (
 	"fmt"
 	"github.com/gookit/color"
-	"github.com/gookit/gcli/v2"
-	"github.com/gookit/gcli/v2/interact"
 	"github.com/mitchellh/go-homedir"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
-	"strconv"
+
+	"github.com/manifoldco/promptui"
 )
 
+var kubeDir string
+
+func init() {
+	var dir string
+	var err error
+	dir, err = homedir.Dir()
+
+	if err != nil {
+		color.Error.Println(err)
+		panic(err)
+	}
+	kubeDir = path.Join(dir, ".kube")
+
+}
+
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	prompt := promptui.Select{
+		Label: "Select Day",
+		Items: GetFiles(),
+	}
 
-	app := gcli.NewApp(func(app *gcli.App) {
-		app.Version = "1.0.6"
-		app.Description = "this is a kube config switch cli applicaton"
-		app.DefaultCommand("switch")
-	})
-	app.Add(&gcli.Command{
-		Name:    "switch",
-		UseFor:  "this is a description <info>message</> for command",
-		Aliases: []string{"sw"},
-		Func: func(cmd *gcli.Command, args []string) error {
-			var fileInfos []os.FileInfo
-			var files []string
-			var err error
-			var dir string
+	_, result, err := prompt.Run()
 
-			dir, err = homedir.Dir()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
 
-			if err != nil {
-				color.Error.Println(err)
-			}
+	cp(fmt.Sprintf("cp %s %s", path.Join(kubeDir, result), path.Join(kubeDir, "config")))
+}
 
-			kubeDir := path.Join(dir, ".kube")
+func GetFiles() []string {
+	var fileInfos []os.FileInfo
+	var files []string
+	var err error
 
-			fileInfos, err = ioutil.ReadDir(kubeDir)
-			if err != nil {
-				log.Fatal(err)
-			}
+	fileInfos, err = ioutil.ReadDir(kubeDir)
+	if err != nil {
+		color.Error.Println(err)
+	}
 
-			for _, file := range fileInfos {
-				if !file.IsDir() && file.Name() != "config" {
-					files = append(files, file.Name())
-				}
-			}
+	for _, file := range fileInfos {
+		if !file.IsDir() && file.Name() != "config" {
+			files = append(files, file.Name())
+		}
+	}
 
-			if err != nil {
-				color.Error.Println(err)
-			}
-			in := interact.SingleSelect("Your Kube config", files, "")
-			int, _ := strconv.Atoi(in)
-
-			cp(fmt.Sprintf("cp %s %s", path.Join(kubeDir, files[int]), path.Join(kubeDir, "config")))
-			return nil
-		},
-	})
-
-	app.Run()
+	if err != nil {
+		color.Error.Println(err)
+	}
+	return files
 }
 
 func cp(cmd string) {

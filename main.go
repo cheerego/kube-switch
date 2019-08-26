@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/gookit/color"
+	"github.com/manifoldco/promptui"
 	"github.com/mitchellh/go-homedir"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
-
-	"github.com/manifoldco/promptui"
 )
 
 var kubeDir string
@@ -29,7 +28,7 @@ func init() {
 
 func main() {
 	prompt := promptui.Select{
-		Label: "Select Day",
+		Label: "Select Kube Config",
 		Items: GetFiles(),
 	}
 

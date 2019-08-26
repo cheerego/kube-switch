@@ -14,11 +14,9 @@ go get github.com/cheerego/kube-switch
 ## Usage
 
 ```
-➜  kube-switch 
-Your Kube config
-  0) config.bak
-  1) makex-config
-  2) mine-config
-  q) quit
-Your choice: Your choice: 
+➜  ~ kube-switch
+Use the arrow keys to navigate: ↓ ↑ → ←
+? Select Kube Config:
+  ▸ makex-config
+    mine-config
 ```
